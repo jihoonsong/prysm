@@ -613,6 +613,7 @@ func sortedSliceFromMap(m map[uint64]bool) []uint64 {
 }
 
 // blocksWithBlobsCommitmentsBoundaries finds the first and last block in `bwb` that contain at least one blob commitment.
+// Preqrequisite: bwb is sorted by slot.
 func blocksWithBlobsCommitmentsBoundaries(
 	bwb []blocks2.BlockWithROBlobs,
 	currentSlot primitives.Slot,
@@ -1118,7 +1119,7 @@ func (f *blocksFetcher) fetchDataColumnsFromPeers(
 	return bwb, nil
 }
 
-// doesPeerCustdiesAllColumns return `true` if `peer`
+// custodyAllNeededColumns filter `inputPeers` that custody all columns in `columns`.
 func (f *blocksFetcher) custodyAllNeededColumns(inputPeers []peer.ID, columns map[uint64]bool) ([]peer.ID, error) {
 	outputPeers := make([]peer.ID, 0, len(inputPeers))
 

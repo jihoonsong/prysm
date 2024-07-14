@@ -1303,3 +1303,101 @@ func TestBlockFetcher_HasSufficientBandwidth(t *testing.T) {
 	}
 	assert.Equal(t, 2, len(receivedPeers))
 }
+
+func TestSortedSliceFromMap(t *testing.T) {
+	m := map[uint64]bool{1: true, 3: true, 2: true, 4: true}
+	expected := []uint64{1, 2, 3, 4}
+
+	actual := sortedSliceFromMap(m)
+	require.DeepSSZEqual(t, expected, actual)
+}
+
+type slotCommitment struct {
+	slot       primitives.Slot
+	commitment bool
+}
+
+func generateBlockWithROBlobs(t *testing.T, slotCommitment slotCommitment) blocks.BlockWithROBlobs {
+	signedBeaconBlockPb := util.NewBeaconBlockDeneb()
+	signedBeaconBlockPb.Block.Slot = slotCommitment.slot
+
+	if slotCommitment.commitment {
+		signedBeaconBlockPb.Block.Body.BlobKzgCommitments = [][]byte{[]byte("commitment")}
+	}
+
+	signedBeaconBlock, err := blocks.NewSignedBeaconBlock(signedBeaconBlockPb)
+	require.NoError(t, err)
+
+	roBlock, err := blocks.NewROBlockWithRoot(signedBeaconBlock, [32]byte{})
+	require.NoError(t, err)
+
+	return blocks.BlockWithROBlobs{
+		Block: roBlock,
+	}
+}
+
+func TestBlocksWithBlobsCommitmentsBoundaries(t *testing.T) {
+	const currentSlot = primitives.Slot(1_000_000)
+
+	testCases := []struct {
+		name            string
+		slotCommitments []slotCommitment
+		existing        bool
+		first           int
+		last            int
+	}{
+		{
+			name:            "blocks are too old",
+			slotCommitments: []slotCommitment{{100, false}, {103, false}, {105, false}},
+
+			existing: false,
+			first:    0,
+			last:     0,
+		},
+		{
+			name:            "no block with commitments",
+			slotCommitments: []slotCommitment{{currentSlot - 3, false}, {currentSlot - 2, false}, {currentSlot - 1, false}},
+			existing:        false,
+			first:           0,
+			last:            0,
+		},
+		{
+			name:            "only one block with commitments",
+			slotCommitments: []slotCommitment{{currentSlot - 3, false}, {currentSlot - 2, true}, {currentSlot - 1, false}},
+			existing:        true,
+			first:           1,
+			last:            1,
+		},
+		{
+			name: "a few blocks with commitments",
+			slotCommitments: []slotCommitment{
+				{currentSlot - 5, false},
+				{currentSlot - 4, true},
+				{currentSlot - 3, false},
+				{currentSlot - 2, true},
+				{currentSlot - 1, false},
+			},
+			existing: true,
+			first:    1,
+			last:     3,
+		},
+	}
+
+	params.BeaconConfig().DenebForkEpoch = 0
+	params.BeaconConfig().Eip7594ForkEpoch = 0
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			bwb := make([]blocks.BlockWithROBlobs, 0, len(tc.slotCommitments))
+			for _, slot := range tc.slotCommitments {
+				bwb = append(bwb, generateBlockWithROBlobs(t, slot))
+			}
+
+			existing, first, last, err := blocksWithBlobsCommitmentsBoundaries(bwb, currentSlot)
+			require.NoError(t, err)
+			require.Equal(t, tc.existing, existing)
+			require.Equal(t, tc.first, first)
+			require.Equal(t, tc.last, last)
+		})
+	}
+}
