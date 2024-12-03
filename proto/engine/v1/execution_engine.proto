@@ -181,6 +181,7 @@ message PayloadStatus {
 		SYNCING                 = 3;
 		ACCEPTED                = 4;
 		INVALID_BLOCK_HASH      = 5;
+		INCLUSION_LIST_NOT_SATISFIED = 6;
 	}
 }
 
