@@ -8,6 +8,7 @@ import (
 	"github.com/prysmaticlabs/prysm/v5/config/params"
 	"github.com/prysmaticlabs/prysm/v5/consensus-types/primitives"
 	"github.com/prysmaticlabs/prysm/v5/monitoring/tracing/trace"
+	pb "github.com/prysmaticlabs/prysm/v5/proto/engine/v1"
 )
 
 const (
@@ -15,11 +16,6 @@ const (
 	GetInclusionListV1               = "engine_getInclusionListV1"
 	UpdatePayloadWithInclusionListV1 = "engine_updatePayloadWithInclusionListV1"
 )
-
-// InclusionListV1 represents a structure for inclusion lists containing transactions.
-type InclusionListV1 struct {
-	Transactions [][]byte `json:"transactions" gencodec:"required"`
-}
 
 // GetInclusionList fetches the inclusion list for a given parent hash by invoking the execution engine RPC.
 // It uses a context with a timeout defined by the Beacon configuration.
@@ -63,9 +59,7 @@ func (s *Service) UpdatePayloadWithInclusionList(ctx context.Context, payloadID 
 	defer cancel()
 
 	result := &primitives.PayloadID{}
-	err := s.rpcClient.CallContext(ctx, result, UpdatePayloadWithInclusionListV1, payloadID, &InclusionListV1{
-		Transactions: txs,
-	})
+	err := s.rpcClient.CallContext(ctx, result, UpdatePayloadWithInclusionListV1, pb.PayloadIDBytes(payloadID), txs)
 	if err != nil {
 		return nil, handleRPCError(err)
 	}
