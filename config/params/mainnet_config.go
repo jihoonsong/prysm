@@ -31,6 +31,8 @@ const (
 	mainnetElectraForkEpoch = 364032 // May 7, 2025, 10:05:11 UTC
 	// Fulu Fork Epoch for mainnet config
 	mainnetFuluForkEpoch = math.MaxUint64 // Far future / to be defined
+	// Eip7782 Fork Epoch for mainnet config
+	mainnetEip7782ForkEpoch = math.MaxUint64 // Far future / to be defined
 )
 
 var mainnetNetworkConfig = &NetworkConfig{
@@ -221,6 +223,8 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 	ElectraForkEpoch:     mainnetElectraForkEpoch,
 	FuluForkVersion:      []byte{6, 0, 0, 0},
 	FuluForkEpoch:        mainnetFuluForkEpoch,
+	Eip7782ForkVersion:   []byte{11, 0, 0, 0},
+	Eip7782ForkEpoch:     mainnetEip7782ForkEpoch,
 
 	// New values introduced in Altair hard fork 1.
 	// Participation flag indices.

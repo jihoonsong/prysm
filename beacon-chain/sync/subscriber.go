@@ -232,6 +232,17 @@ func (s *Service) registerSubscribers(epoch primitives.Epoch, digest [4]byte) {
 			getSubnetsToJoin: s.dataColumnSubnetIndices,
 		})
 	}
+
+	// New gossip topic in Eip7782.
+	if params.BeaconConfig().Eip7782ForkEpoch <= epoch {
+		s.subscribeWithParameters(subscribeParameters{
+			topicFormat:      p2p.DataColumnSubnetTopicFormat,
+			validate:         s.validateDataColumn,
+			handle:           s.dataColumnSubscriber,
+			digest:           digest,
+			getSubnetsToJoin: s.dataColumnSubnetIndices,
+		})
+	}
 }
 
 // subscribe to a given topic with a given validator and subscription handler.

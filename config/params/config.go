@@ -179,6 +179,8 @@ type BeaconChainConfig struct {
 	ElectraForkEpoch     primitives.Epoch `yaml:"ELECTRA_FORK_EPOCH" spec:"true"`     // ElectraForkEpoch is used to represent the assigned fork epoch for electra.
 	FuluForkVersion      []byte           `yaml:"FULU_FORK_VERSION" spec:"true"`      // FuluForkVersion is used to represent the fork version for fulu.
 	FuluForkEpoch        primitives.Epoch `yaml:"FULU_FORK_EPOCH" spec:"true"`        // FuluForkEpoch is used to represent the assigned fork epoch for fulu.
+	Eip7782ForkVersion   []byte           `yaml:"EIP7782_FORK_VERSION" spec:"true"`   // Eip7782ForkVersion is used to represent the fork version for eip7782.
+	Eip7782ForkEpoch     primitives.Epoch `yaml:"EIP7782_FORK_EPOCH" spec:"true"`     // Eip7782ForkEpoch is used to represent the assigned fork epoch for eip7782.
 
 	ForkVersionSchedule map[[fieldparams.VersionLength]byte]primitives.Epoch // Schedule of fork epochs by version.
 	ForkVersionNames    map[[fieldparams.VersionLength]byte]string           // Human-readable names of fork versions.
