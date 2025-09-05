@@ -66,6 +66,12 @@ type BeaconChainConfig struct {
 	GenesisDelay                     uint64           `yaml:"GENESIS_DELAY" spec:"true"`                   // GenesisDelay is the minimum number of seconds to delay starting the Ethereum Beacon Chain genesis. Must be at least 1 second.
 	MinAttestationInclusionDelay     primitives.Slot  `yaml:"MIN_ATTESTATION_INCLUSION_DELAY" spec:"true"` // MinAttestationInclusionDelay defines how many slots validator has to wait to include attestation for beacon block.
 	SecondsPerSlot                   uint64           `yaml:"SECONDS_PER_SLOT" spec:"true"`                // SecondsPerSlot is how many seconds are in a single slot.
+	SlotDurationMs                   uint64           `yaml:"SLOT_DURATION_MS" spec:"true"`                // SlotDurationMs is how many milliseconds are in a single slot.
+	ProposerReorgCutoffBps           uint64           `yaml:"PROPOSER_REORG_CUTOFF_BPS" spec:"true"`       // ProposerReorgCutoffBps is how many milliseconds are in the proposer reorg cutoff as a ratio of `SlotDurationMs`.
+	AttestationDueBps                uint64           `yaml:"ATTESTATION_DUE_BPS" spec:"true"`             // AttestationDueBps is how many milliseconds are in the attestation interval as a ratio of `SlotDurationMs`.
+	AggregationDueBps                uint64           `yaml:"AGGREGRATE_DUE_BPS" spec:"true"`              // AggregationDueBps is how many milliseconds are in the aggregation interval as a ratio of `SlotDurationMs`.
+	SyncMessageDueBps                uint64           `yaml:"SYNC_MESSAGE_DUE_BPS" spec:"true"`            // SyncMessageDueBps is how many milliseconds are in the sync message interval as a ratio of `SlotDurationMs`.
+	ContributionDueBps               uint64           `yaml:"CONTRIBUTION_DUE_BPS" spec:"true"`            // ContributionDueBps is how many milliseconds are in the sync contribution interval as a ratio of `SlotDurationMs`.
 	SlotsPerEpoch                    primitives.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"`                 // SlotsPerEpoch is the number of slots in an epoch.
 	SqrRootSlotsPerEpoch             primitives.Slot  // SqrRootSlotsPerEpoch is a hard coded value where we take the square root of `SlotsPerEpoch` and round down.
 	MinSeedLookahead                 primitives.Epoch `yaml:"MIN_SEED_LOOKAHEAD" spec:"true"`                  // MinSeedLookahead is the duration of randao look ahead seed.
@@ -288,6 +294,13 @@ type BeaconChainConfig struct {
 	MaxRequestDataColumnSidecars          uint64           `yaml:"MAX_REQUEST_DATA_COLUMN_SIDECARS" spec:"true"`             // MaxRequestDataColumnSidecars is the maximum number of data column sidecars in a single request
 	ValidatorCustodyRequirement           uint64           `yaml:"VALIDATOR_CUSTODY_REQUIREMENT" spec:"true"`                // ValidatorCustodyRequirement is the minimum number of custody groups an honest node with validators attached custodies and serves samples from
 	BalancePerAdditionalCustodyGroup      uint64           `yaml:"BALANCE_PER_ADDITIONAL_CUSTODY_GROUP" spec:"true"`         // BalancePerAdditionalCustodyGroup is the balance increment corresponding to one additional group to custody.
+
+	// Values introduced in Eip7782 upgrade
+	SlotDurationMsEip7782     uint64 `yaml:"SLOT_DURATION_MS_EIP7782" spec:"true"`     // SlotDurationMsEip7782 is how many milliseconds are in a single slot.
+	AttestationDueBpsEip7782  uint64 `yaml:"ATTESTATION_DUE_BPS_EIP7782" spec:"true"`  // AttestationDueBpsEip7782 is how many milliseconds are in the attestation interval as a ratio of `SlotDurationMsEip7782`.
+	AggregationDueBpsEip7782  uint64 `yaml:"AGGREGATION_DUE_BPS_EIP7782" spec:"true"`  // AggregationDueBpsEip7782 is how many milliseconds are in the aggregation interval as a ratio of `SlotDurationMsEip7782`.
+	SyncMessageDueBpsEip7782  uint64 `yaml:"SYNC_MESSAGE_DUE_BPS_EIP7782" spec:"true"` // SyncMessageDueBpsEip7782 is how many milliseconds are in the sync message interval as a ratio of `SlotDurationMsEip7782`.
+	ContributionDueBpsEip7782 uint64 `yaml:"CONTRIBUTION_DUE_BPS_EIP7782" spec:"true"` // ContributionDueBpsEip7782 is how many milliseconds are in the sync contribution interval as a ratio of `SlotDurationMsEip7782`.
 
 	// Networking Specific Parameters
 	MaxPayloadSize                  uint64          `yaml:"MAX_PAYLOAD_SIZE" spec:"true"`                   // MAX_PAYLOAD_SIZE is the maximum allowed size of uncompressed payload in gossip messages and rpc chunks.

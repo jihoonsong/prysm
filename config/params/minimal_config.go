@@ -34,6 +34,11 @@ func MinimalSpecConfig() *BeaconChainConfig {
 
 	// Time parameters
 	minimalConfig.SecondsPerSlot = 6
+	minimalConfig.SlotDurationMs = 6000
+	minimalConfig.ProposerReorgCutoffBps = 1667
+	minimalConfig.AttestationDueBps = 3333
+	minimalConfig.AggregationDueBps = 6667
+	minimalConfig.SyncMessageDueBps = 3333
 	minimalConfig.MinAttestationInclusionDelay = 1
 	minimalConfig.SlotsPerEpoch = 8
 	minimalConfig.SqrRootSlotsPerEpoch = 2
@@ -118,6 +123,12 @@ func MinimalSpecConfig() *BeaconChainConfig {
 	minimalConfig.MaxPendingPartialsPerWithdrawalsSweep = 2
 	minimalConfig.PendingDepositsLimit = 134217728
 	minimalConfig.MaxPendingDepositsPerEpoch = 16
+
+	// New Eip7782 params
+	minimalConfig.SlotDurationMsEip7782 = 6000
+	minimalConfig.AttestationDueBpsEip7782 = 5000
+	minimalConfig.AggregationDueBpsEip7782 = 7500
+	minimalConfig.SyncMessageDueBpsEip7782 = 3333
 
 	// Ethereum PoW parameters.
 	minimalConfig.DepositChainID = 5   // Chain ID of eth1 goerli.

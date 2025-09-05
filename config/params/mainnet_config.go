@@ -100,6 +100,12 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 	// Time parameter constants.
 	MinAttestationInclusionDelay:     1,
 	SecondsPerSlot:                   12,
+	SlotDurationMs:                   12000,
+	ProposerReorgCutoffBps:           1667,
+	AttestationDueBps:                3333,
+	AggregationDueBps:                6667,
+	SyncMessageDueBps:                3333,
+	ContributionDueBps:               6667,
 	SlotsPerEpoch:                    32,
 	SqrRootSlotsPerEpoch:             5,
 	MinSeedLookahead:                 1,
@@ -325,6 +331,13 @@ var mainnetBeaconConfig = &BeaconChainConfig{
 	ValidatorCustodyRequirement:           8,
 	BalancePerAdditionalCustodyGroup:      32_000_000_000,
 	DeprecatedMaxBlobsPerBlockFulu:        12,
+
+	// Values related to eip7782
+	SlotDurationMsEip7782:     6000,
+	AttestationDueBpsEip7782:  5000,
+	AggregationDueBpsEip7782:  7500,
+	SyncMessageDueBpsEip7782:  3333,
+	ContributionDueBpsEip7782: 6667,
 
 	// Values related to networking parameters.
 	MaxPayloadSize:                  10 * 1 << 20, // 10 MiB
