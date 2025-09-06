@@ -22,7 +22,7 @@ func TestPruneExpired_Ticker(t *testing.T) {
 
 	s, err := NewService(ctx, &Config{
 		Pool:          NewPool(),
-		pruneInterval: 250 * time.Millisecond,
+		pruneInterval: 48,
 	})
 	require.NoError(t, err)
 

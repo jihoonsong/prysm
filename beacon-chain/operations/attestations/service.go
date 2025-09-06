@@ -11,7 +11,6 @@ import (
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/cache"
 	lruwrpr "github.com/OffchainLabs/prysm/v6/cache/lru"
 	"github.com/OffchainLabs/prysm/v6/config/features"
-	"github.com/OffchainLabs/prysm/v6/config/params"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -31,7 +30,7 @@ type Service struct {
 type Config struct {
 	Cache               *cache.AttestationCache
 	Pool                Pool
-	pruneInterval       time.Duration
+	pruneInterval       uint64 /* times per slot */
 	InitialSyncComplete chan struct{}
 }
 
@@ -42,7 +41,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 
 	if cfg.pruneInterval == 0 {
 		// Prune expired attestations from the pool every slot interval.
-		cfg.pruneInterval = time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
+		cfg.pruneInterval = 1
 	}
 
 	ctx, cancel := context.WithCancel(ctx)

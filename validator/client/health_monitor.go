@@ -3,10 +3,9 @@ package client
 import (
 	"context"
 	"sync"
-	"time"
 
+	"github.com/OffchainLabs/prysm/v6/async"
 	"github.com/OffchainLabs/prysm/v6/async/event"
-	"github.com/OffchainLabs/prysm/v6/config/params"
 	"github.com/OffchainLabs/prysm/v6/validator/client/iface"
 	"github.com/sirupsen/logrus"
 )
@@ -81,16 +80,13 @@ func (m *healthMonitor) performHealthCheck() {
 
 func (m *healthMonitor) loop() {
 	log.Debug("Starting health check routine for beacon node apis")
-	interval := time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
-	ticker := time.NewTicker(interval)
-
-	for ; true; <-ticker.C { // check immediately
+	async.RunEverySlotMultiple(m.ctx, m.v.GenesisTime(), 1, func() {
 		if m.ctx.Err() != nil {
 			log.Debug("Context canceled, stopping health checking")
 			return
 		}
 		m.performHealthCheck()
-	}
+	})
 }
 
 // Start launches the monitor loop (non-blocking).

@@ -29,7 +29,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var processPendingBlocksPeriod = slots.DivideSlotBy(3 /* times per slot */)
+var processPendingBlocksPeriod = 3 /* three times per slot */
 
 const maxPeerRequest = 50
 const numOfTries = 5
@@ -39,7 +39,7 @@ const maxBlocksPerSlot = 3
 func (s *Service) processPendingBlocksQueue() {
 	// Prevents multiple queue processing goroutines (invoked by RunEvery) from contending for data.
 	locker := new(sync.Mutex)
-	async.RunEvery(s.ctx, processPendingBlocksPeriod, func() {
+	async.RunEverySlotDivision(s.ctx, s.cfg.clock.GenesisTime(), uint64(processPendingBlocksPeriod), func() {
 		// Don't process the pending blocks if genesis time has not been set. The chain is not ready.
 		if !s.chainIsStarted() {
 			return

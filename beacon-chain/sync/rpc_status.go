@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/OffchainLabs/prysm/v6/async"
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/p2p"
@@ -30,8 +29,9 @@ import (
 // maintainPeerStatuses maintains peer statuses by polling peers for their latest status twice per epoch.
 func (s *Service) maintainPeerStatuses() {
 	// Run twice per epoch.
-	interval := time.Duration(params.BeaconConfig().SlotsPerEpoch.Div(2).Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second
-	async.RunEvery(s.ctx, interval, func() {
+	genesisTime := s.cfg.clock.GenesisTime()
+	interval := params.BeaconConfig().SlotsPerEpoch.Div(2)
+	async.RunEverySlotMultiple(s.ctx, genesisTime, uint64(interval), func() {
 		wg := new(sync.WaitGroup)
 		for _, pid := range s.cfg.p2p.Peers().Connected() {
 			wg.Add(1)
@@ -68,7 +68,9 @@ func (s *Service) maintainPeerStatuses() {
 					return
 				}
 
-				if prysmTime.Now().After(lastUpdated.Add(interval)) {
+				currentSlot := slots.CurrentSlot(genesisTime)
+				intervalDuration := slots.SecondsInSlotRange(currentSlot, currentSlot+interval)
+				if prysmTime.Now().After(lastUpdated.Add(intervalDuration)) {
 					if err := s.reValidatePeer(s.ctx, id); err != nil {
 						log.WithError(err).Debug("Cannot re-validate peer")
 					}
@@ -96,10 +98,10 @@ func (s *Service) maintainPeerStatuses() {
 // resyncIfBehind checks periodically to see if we are in normal sync but have fallen behind our peers
 // by more than an epoch, in which case we attempt a resync using the initial sync method to catch up.
 func (s *Service) resyncIfBehind() {
-	millisecondsPerEpoch := params.BeaconConfig().SlotsPerEpoch.Mul(1000).Mul(params.BeaconConfig().SecondsPerSlot)
 	// Run sixteen times per epoch.
-	interval := time.Duration(millisecondsPerEpoch/16) * time.Millisecond
-	async.RunEvery(s.ctx, interval, func() {
+	// If an epoch has less than 16 slots, run every slot.
+	interval := max(params.BeaconConfig().SlotsPerEpoch.Div(16), 1)
+	async.RunEverySlotMultiple(s.ctx, s.cfg.clock.GenesisTime(), uint64(interval), func() {
 		if s.shouldReSync() {
 			syncedEpoch := slots.ToEpoch(s.cfg.chain.HeadSlot())
 			// Factor number of expected minimum sync peers, to make sure that enough peers are

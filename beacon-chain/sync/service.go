@@ -254,7 +254,7 @@ func (s *Service) Start() {
 	s.newColumnsVerifier = newDataColumnsVerifierFromInitializer(v)
 
 	go s.verifierRoutine()
-	go s.startTasksPostInitialSync()
+	go s.startTasksPostChainStart()
 	go s.processDataColumnLogs()
 
 	s.cfg.p2p.AddConnectionHandler(s.reValidatePeer, s.sendGoodbye)
@@ -264,15 +264,9 @@ func (s *Service) Start() {
 	})
 	s.cfg.p2p.AddPingMethod(s.sendPingRequest)
 
-	s.processPendingBlocksQueue()
-	s.runPendingAttsQueue()
-	s.maintainPeerStatuses()
-
 	if params.FuluEnabled() {
 		s.maintainCustodyInfo()
 	}
-
-	s.resyncIfBehind()
 
 	// Update sync metrics.
 	async.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
@@ -384,10 +378,20 @@ func (s *Service) waitForChainStart() {
 	s.markForChainStart()
 }
 
-func (s *Service) startTasksPostInitialSync() {
+func (s *Service) startTasksPostChainStart() {
 	// Wait for the chain to start.
 	s.waitForChainStart()
 
+	// Start tasks that require genesis time
+	s.processPendingBlocksQueue()
+	s.runPendingAttsQueue()
+	s.maintainPeerStatuses()
+	s.resyncIfBehind()
+
+	go s.startTasksPostInitialSync()
+}
+
+func (s *Service) startTasksPostInitialSync() {
 	select {
 	case <-s.initialSyncComplete:
 		// Compute the current epoch.

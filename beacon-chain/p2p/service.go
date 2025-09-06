@@ -23,7 +23,6 @@ import (
 	prysmnetwork "github.com/OffchainLabs/prysm/v6/network"
 	"github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1/metadata"
 	"github.com/OffchainLabs/prysm/v6/runtime"
-	"github.com/OffchainLabs/prysm/v6/time/slots"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p"
@@ -51,7 +50,7 @@ const (
 
 var (
 	// Refresh rate of ENR set at twice per slot.
-	refreshRate = slots.DivideSlotBy(2)
+	refreshRate = 2
 
 	// maxDialTimeout is the timeout for a single peer dial.
 	maxDialTimeout = params.BeaconConfig().RespTimeoutDuration()
@@ -258,7 +257,7 @@ func (s *Service) Start() {
 	})
 	async.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	async.RunEvery(s.ctx, time.Duration(params.BeaconConfig().RespTimeout)*time.Second, s.updateMetrics)
-	async.RunEvery(s.ctx, refreshRate, s.RefreshPersistentSubnets)
+	async.RunEverySlotDivision(s.ctx, s.genesisTime, uint64(refreshRate), s.RefreshPersistentSubnets)
 	async.RunEvery(s.ctx, 1*time.Minute, func() {
 		inboundQUICCount := len(s.peers.InboundConnectedWithProtocol(peers.QUIC))
 		inboundTCPCount := len(s.peers.InboundConnectedWithProtocol(peers.TCP))

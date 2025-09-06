@@ -3,6 +3,7 @@ package attestations
 import (
 	"time"
 
+	"github.com/OffchainLabs/prysm/v6/async"
 	"github.com/OffchainLabs/prysm/v6/config/params"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
 	"github.com/OffchainLabs/prysm/v6/time/slots"
@@ -10,39 +11,23 @@ import (
 
 // pruneExpired prunes attestations pool on every slot interval.
 func (s *Service) pruneExpired() {
-	ticker := time.NewTicker(s.cfg.pruneInterval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			s.pruneExpiredAtts()
-			s.updateMetrics()
-		case <-s.ctx.Done():
-			log.Debug("Context closed, exiting routine")
-			return
-		}
-	}
+	async.RunEverySlotDivision(s.ctx, s.genesisTime, s.cfg.pruneInterval, func() {
+		s.pruneExpiredAtts()
+		s.updateMetrics()
+	})
 }
 
 // pruneExpiredExperimental prunes attestations on every prune interval.
 func (s *Service) pruneExpiredExperimental() {
-	ticker := time.NewTicker(s.cfg.pruneInterval)
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			expirySlot, err := s.expirySlot()
-			if err != nil {
-				log.WithError(err).Error("Could not get expiry slot")
-				continue
-			}
-			numExpired := s.cfg.Cache.PruneBefore(expirySlot)
-			s.updateMetricsExperimental(numExpired)
-		case <-s.ctx.Done():
-			log.Debug("Context closed, exiting routine")
+	async.RunEverySlotDivision(s.ctx, s.genesisTime, s.cfg.pruneInterval, func() {
+		expirySlot, err := s.expirySlot()
+		if err != nil {
+			log.WithError(err).Error("Could not get expiry slot")
 			return
 		}
-	}
+		numExpired := s.cfg.Cache.PruneBefore(expirySlot)
+		s.updateMetricsExperimental(numExpired)
+	})
 }
 
 // This prunes expired attestations from the pool.
