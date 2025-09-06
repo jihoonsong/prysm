@@ -163,7 +163,14 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	psOpts := s.pubsubOptions()
 
 	// Set the pubsub global parameters that we require.
-	setPubSubParameters(s.genesisTime)
+	async.RunEverySlotMultiple(s.ctx, s.genesisTime, uint64(params.BeaconConfig().SlotsPerEpoch), func() {
+		setPubSubParameters(s.genesisTime)
+	})
+
+	// Update the gossip scoring parameters every epoch.
+	async.RunEverySlotMultiple(s.ctx, s.genesisTime, uint64(params.BeaconConfig().SlotsPerEpoch), func() {
+		setGossipScoringParameters(s.genesisTime)
+	})
 
 	// Reinitialize them in the event we are running a custom config.
 	attestationSubnetCount = params.BeaconConfig().AttestationSubnetCount

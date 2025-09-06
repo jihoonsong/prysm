@@ -10,6 +10,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/core/helpers"
 	coreTime "github.com/OffchainLabs/prysm/v6/beacon-chain/core/time"
 	"github.com/OffchainLabs/prysm/v6/config/params"
+	"github.com/OffchainLabs/prysm/v6/time/slots"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/pkg/errors"
@@ -76,6 +77,20 @@ var (
 	oneEpochDuration   = time.Duration(params.BeaconConfig().SlotsPerEpoch) * oneSlotDuration
 	oneSlotDuration    = time.Duration(params.BeaconConfig().SlotDurationMs) * time.Millisecond
 )
+
+func setGossipScoringParameters(genesisTime time.Time) {
+	currentSlot := slots.CurrentSlot(genesisTime)
+	slotsPerEpoch := params.BeaconConfig().SlotsPerEpoch
+	// We subscribe to topics one epoch in advance. If next epoch has a scheduled fork that changes
+	// slot time, we need to use the new slot time for gossip scoring parameters. In other cases,
+	// this one epoch lookahead is essentially a no-op.
+	oneSlotDuration = time.Duration(slots.SecondsPerSlot(currentSlot+slotsPerEpoch)) * time.Second
+	oneEpochDuration = slots.SecondsInSlotRange(currentSlot+slotsPerEpoch, currentSlot+2*slotsPerEpoch)
+	tenEpochs = 10 * oneEpochDuration
+	twentyEpochs = 20 * oneEpochDuration
+	invalidDecayPeriod = 50 * oneEpochDuration
+	oneHundredEpochs = 100 * oneEpochDuration
+}
 
 func peerScoringParams() (*pubsub.PeerScoreParams, *pubsub.PeerScoreThresholds) {
 	thresholds := &pubsub.PeerScoreThresholds{
