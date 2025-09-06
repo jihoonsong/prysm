@@ -106,7 +106,7 @@ func (vs *Server) WaitForActivation(req *ethpb.ValidatorActivationRequest, strea
 		return status.Errorf(codes.Internal, "Could not send response over stream: %v", err)
 	}
 
-	waitTime := time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
+	waitTime := time.Duration(slots.SecondsPerSlot(vs.TimeFetcher.CurrentSlot())) * time.Second
 	ticker := time.NewTicker(waitTime)
 	defer ticker.Stop()
 

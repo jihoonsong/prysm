@@ -7,7 +7,6 @@ import (
 
 	doublylinkedtree "github.com/OffchainLabs/prysm/v6/beacon-chain/forkchoice/doubly-linked-tree"
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/state"
-	"github.com/OffchainLabs/prysm/v6/config/params"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
 	payloadattribute "github.com/OffchainLabs/prysm/v6/consensus-types/payload-attribute"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
@@ -124,7 +123,7 @@ func (s *Service) shouldOverrideFCU(newHeadRoot [32]byte, proposingSlot primitiv
 			"root":   fmt.Sprintf("%#x", newHeadRoot),
 			"weight": headWeight,
 		}).Infof("Attempted late block reorg aborted due to attestations at %d seconds",
-			params.BeaconConfig().SecondsPerSlot)
+			slots.SecondsPerSlot(currentSlot))
 		lateBlockFailedAttemptSecondThreshold.Inc()
 	} else {
 		if s.cfg.ForkChoiceStore.ShouldOverrideFCU() {

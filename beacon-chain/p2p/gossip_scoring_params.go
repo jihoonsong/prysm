@@ -69,10 +69,12 @@ var (
 	meshDeliveryIsScored = false
 
 	// Defines the variables representing the different time periods.
-	oneHundredEpochs   = 100 * oneEpochDuration()
-	invalidDecayPeriod = 50 * oneEpochDuration()
-	twentyEpochs       = 20 * oneEpochDuration()
-	tenEpochs          = 10 * oneEpochDuration()
+	oneHundredEpochs   = 100 * oneEpochDuration
+	invalidDecayPeriod = 50 * oneEpochDuration
+	twentyEpochs       = 20 * oneEpochDuration
+	tenEpochs          = 10 * oneEpochDuration
+	oneEpochDuration   = time.Duration(params.BeaconConfig().SlotsPerEpoch) * oneSlotDuration
+	oneSlotDuration    = time.Duration(params.BeaconConfig().SlotDurationMs) * time.Millisecond
 )
 
 func peerScoringParams() (*pubsub.PeerScoreParams, *pubsub.PeerScoreThresholds) {
@@ -96,7 +98,7 @@ func peerScoringParams() (*pubsub.PeerScoreParams, *pubsub.PeerScoreThresholds) 
 		BehaviourPenaltyWeight:      -15.92,
 		BehaviourPenaltyThreshold:   6,
 		BehaviourPenaltyDecay:       scoreDecay(tenEpochs),
-		DecayInterval:               oneSlotDuration(),
+		DecayInterval:               oneSlotDuration,
 		DecayToZero:                 decayToZero,
 		RetainScore:                 oneHundredEpochs,
 	}
@@ -197,13 +199,13 @@ func defaultBlockTopicParams() *pubsub.TopicScoreParams {
 		FirstMessageDeliveriesDecay:     scoreDecay(twentyEpochs),
 		FirstMessageDeliveriesCap:       23,
 		MeshMessageDeliveriesWeight:     meshWeight,
-		MeshMessageDeliveriesDecay:      scoreDecay(decayEpoch * oneEpochDuration()),
+		MeshMessageDeliveriesDecay:      scoreDecay(decayEpoch * oneEpochDuration),
 		MeshMessageDeliveriesCap:        float64(blocksPerEpoch * uint64(decayEpoch)),
 		MeshMessageDeliveriesThreshold:  float64(blocksPerEpoch*uint64(decayEpoch)) / 10,
 		MeshMessageDeliveriesWindow:     2 * time.Second,
-		MeshMessageDeliveriesActivation: 4 * oneEpochDuration(),
+		MeshMessageDeliveriesActivation: 4 * oneEpochDuration,
 		MeshFailurePenaltyWeight:        meshWeight,
-		MeshFailurePenaltyDecay:         scoreDecay(decayEpoch * oneEpochDuration()),
+		MeshFailurePenaltyDecay:         scoreDecay(decayEpoch * oneEpochDuration),
 		InvalidMessageDeliveriesWeight:  -140.4475,
 		InvalidMessageDeliveriesDecay:   scoreDecay(invalidDecayPeriod),
 	}
@@ -212,13 +214,13 @@ func defaultBlockTopicParams() *pubsub.TopicScoreParams {
 func defaultAggregateTopicParams(activeValidators uint64) *pubsub.TopicScoreParams {
 	// Determine the expected message rate for the particular gossip topic.
 	aggPerSlot := aggregatorsPerSlot(activeValidators)
-	firstMessageCap, err := decayLimit(scoreDecay(1*oneEpochDuration()), float64(aggPerSlot*2/gossipSubD))
+	firstMessageCap, err := decayLimit(scoreDecay(1*oneEpochDuration), float64(aggPerSlot*2/gossipSubD))
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
 	}
 	firstMessageWeight := maxFirstDeliveryScore / firstMessageCap
-	meshThreshold, err := decayThreshold(scoreDecay(1*oneEpochDuration()), float64(aggPerSlot)/dampeningFactor)
+	meshThreshold, err := decayThreshold(scoreDecay(1*oneEpochDuration), float64(aggPerSlot)/dampeningFactor)
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
@@ -236,16 +238,16 @@ func defaultAggregateTopicParams(activeValidators uint64) *pubsub.TopicScorePara
 		TimeInMeshQuantum:               inMeshTime(),
 		TimeInMeshCap:                   inMeshCap(),
 		FirstMessageDeliveriesWeight:    firstMessageWeight,
-		FirstMessageDeliveriesDecay:     scoreDecay(1 * oneEpochDuration()),
+		FirstMessageDeliveriesDecay:     scoreDecay(1 * oneEpochDuration),
 		FirstMessageDeliveriesCap:       firstMessageCap,
 		MeshMessageDeliveriesWeight:     meshWeight,
-		MeshMessageDeliveriesDecay:      scoreDecay(1 * oneEpochDuration()),
+		MeshMessageDeliveriesDecay:      scoreDecay(1 * oneEpochDuration),
 		MeshMessageDeliveriesCap:        meshCap,
 		MeshMessageDeliveriesThreshold:  meshThreshold,
 		MeshMessageDeliveriesWindow:     2 * time.Second,
-		MeshMessageDeliveriesActivation: 1 * oneEpochDuration(),
+		MeshMessageDeliveriesActivation: 1 * oneEpochDuration,
 		MeshFailurePenaltyWeight:        meshWeight,
-		MeshFailurePenaltyDecay:         scoreDecay(1 * oneEpochDuration()),
+		MeshFailurePenaltyDecay:         scoreDecay(1 * oneEpochDuration),
 		InvalidMessageDeliveriesWeight:  -maxScore() / aggregateWeight,
 		InvalidMessageDeliveriesDecay:   scoreDecay(invalidDecayPeriod),
 	}
@@ -254,13 +256,13 @@ func defaultAggregateTopicParams(activeValidators uint64) *pubsub.TopicScorePara
 func defaultSyncContributionTopicParams() *pubsub.TopicScoreParams {
 	// Determine the expected message rate for the particular gossip topic.
 	aggPerSlot := params.BeaconConfig().SyncCommitteeSubnetCount * params.BeaconConfig().TargetAggregatorsPerSyncSubcommittee
-	firstMessageCap, err := decayLimit(scoreDecay(1*oneEpochDuration()), float64(aggPerSlot*2/gossipSubD))
+	firstMessageCap, err := decayLimit(scoreDecay(1*oneEpochDuration), float64(aggPerSlot*2/gossipSubD))
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
 	}
 	firstMessageWeight := maxFirstDeliveryScore / firstMessageCap
-	meshThreshold, err := decayThreshold(scoreDecay(1*oneEpochDuration()), float64(aggPerSlot)/dampeningFactor)
+	meshThreshold, err := decayThreshold(scoreDecay(1*oneEpochDuration), float64(aggPerSlot)/dampeningFactor)
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
@@ -278,16 +280,16 @@ func defaultSyncContributionTopicParams() *pubsub.TopicScoreParams {
 		TimeInMeshQuantum:               inMeshTime(),
 		TimeInMeshCap:                   inMeshCap(),
 		FirstMessageDeliveriesWeight:    firstMessageWeight,
-		FirstMessageDeliveriesDecay:     scoreDecay(1 * oneEpochDuration()),
+		FirstMessageDeliveriesDecay:     scoreDecay(1 * oneEpochDuration),
 		FirstMessageDeliveriesCap:       firstMessageCap,
 		MeshMessageDeliveriesWeight:     meshWeight,
-		MeshMessageDeliveriesDecay:      scoreDecay(1 * oneEpochDuration()),
+		MeshMessageDeliveriesDecay:      scoreDecay(1 * oneEpochDuration),
 		MeshMessageDeliveriesCap:        meshCap,
 		MeshMessageDeliveriesThreshold:  meshThreshold,
 		MeshMessageDeliveriesWindow:     2 * time.Second,
-		MeshMessageDeliveriesActivation: 1 * oneEpochDuration(),
+		MeshMessageDeliveriesActivation: 1 * oneEpochDuration,
 		MeshFailurePenaltyWeight:        meshWeight,
-		MeshFailurePenaltyDecay:         scoreDecay(1 * oneEpochDuration()),
+		MeshFailurePenaltyDecay:         scoreDecay(1 * oneEpochDuration),
 		InvalidMessageDeliveriesWeight:  -maxScore() / syncContributionWeight,
 		InvalidMessageDeliveriesDecay:   scoreDecay(invalidDecayPeriod),
 	}
@@ -322,14 +324,14 @@ func defaultAggregateSubnetTopicParams(activeValidators uint64) *pubsub.TopicSco
 		return nil
 	}
 	// Determine expected first deliveries based on the message rate.
-	firstMessageCap, err := decayLimit(scoreDecay(firstDecay*oneEpochDuration()), float64(rate))
+	firstMessageCap, err := decayLimit(scoreDecay(firstDecay*oneEpochDuration), float64(rate))
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
 	}
 	firstMessageWeight := maxFirstDeliveryScore / firstMessageCap
 	// Determine expected mesh deliveries based on message rate applied with a dampening factor.
-	meshThreshold, err := decayThreshold(scoreDecay(meshDecay*oneEpochDuration()), float64(numPerSlot)/dampeningFactor)
+	meshThreshold, err := decayThreshold(scoreDecay(meshDecay*oneEpochDuration), float64(numPerSlot)/dampeningFactor)
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
@@ -347,16 +349,16 @@ func defaultAggregateSubnetTopicParams(activeValidators uint64) *pubsub.TopicSco
 		TimeInMeshQuantum:               inMeshTime(),
 		TimeInMeshCap:                   inMeshCap(),
 		FirstMessageDeliveriesWeight:    firstMessageWeight,
-		FirstMessageDeliveriesDecay:     scoreDecay(firstDecay * oneEpochDuration()),
+		FirstMessageDeliveriesDecay:     scoreDecay(firstDecay * oneEpochDuration),
 		FirstMessageDeliveriesCap:       firstMessageCap,
 		MeshMessageDeliveriesWeight:     meshWeight,
-		MeshMessageDeliveriesDecay:      scoreDecay(meshDecay * oneEpochDuration()),
+		MeshMessageDeliveriesDecay:      scoreDecay(meshDecay * oneEpochDuration),
 		MeshMessageDeliveriesCap:        meshCap,
 		MeshMessageDeliveriesThreshold:  meshThreshold,
 		MeshMessageDeliveriesWindow:     2 * time.Second,
-		MeshMessageDeliveriesActivation: 1 * oneEpochDuration(),
+		MeshMessageDeliveriesActivation: 1 * oneEpochDuration,
 		MeshFailurePenaltyWeight:        meshWeight,
-		MeshFailurePenaltyDecay:         scoreDecay(meshDecay * oneEpochDuration()),
+		MeshFailurePenaltyDecay:         scoreDecay(meshDecay * oneEpochDuration),
 		InvalidMessageDeliveriesWeight:  -maxScore() / topicWeight,
 		InvalidMessageDeliveriesDecay:   scoreDecay(invalidDecayPeriod),
 	}
@@ -381,18 +383,18 @@ func defaultSyncSubnetTopicParams(activeValidators uint64) *pubsub.TopicScorePar
 
 	rate := subnetWeight * 2 / gossipSubD
 	if rate == 0 {
-		log.Warn("Skipping initializing topic scoring because rate is 0")
+		log.Warn("Skipping initializing topic scoring because rate is 0, subnetWeight", subnetWeight, "  gossipSubD", gossipSubD)
 		return nil
 	}
 	// Determine expected first deliveries based on the message rate.
-	firstMessageCap, err := decayLimit(scoreDecay(firstDecay*oneEpochDuration()), float64(rate))
+	firstMessageCap, err := decayLimit(scoreDecay(firstDecay*oneEpochDuration), float64(rate))
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
 	}
 	firstMessageWeight := maxFirstDeliveryScore / firstMessageCap
 	// Determine expected mesh deliveries based on message rate applied with a dampening factor.
-	meshThreshold, err := decayThreshold(scoreDecay(meshDecay*oneEpochDuration()), float64(subnetWeight)/dampeningFactor)
+	meshThreshold, err := decayThreshold(scoreDecay(meshDecay*oneEpochDuration), float64(subnetWeight)/dampeningFactor)
 	if err != nil {
 		log.WithError(err).Warn("Skipping initializing topic scoring")
 		return nil
@@ -410,16 +412,16 @@ func defaultSyncSubnetTopicParams(activeValidators uint64) *pubsub.TopicScorePar
 		TimeInMeshQuantum:               inMeshTime(),
 		TimeInMeshCap:                   inMeshCap(),
 		FirstMessageDeliveriesWeight:    firstMessageWeight,
-		FirstMessageDeliveriesDecay:     scoreDecay(firstDecay * oneEpochDuration()),
+		FirstMessageDeliveriesDecay:     scoreDecay(firstDecay * oneEpochDuration),
 		FirstMessageDeliveriesCap:       firstMessageCap,
 		MeshMessageDeliveriesWeight:     meshWeight,
-		MeshMessageDeliveriesDecay:      scoreDecay(meshDecay * oneEpochDuration()),
+		MeshMessageDeliveriesDecay:      scoreDecay(meshDecay * oneEpochDuration),
 		MeshMessageDeliveriesCap:        meshCap,
 		MeshMessageDeliveriesThreshold:  meshThreshold,
 		MeshMessageDeliveriesWindow:     2 * time.Second,
-		MeshMessageDeliveriesActivation: 1 * oneEpochDuration(),
+		MeshMessageDeliveriesActivation: 1 * oneEpochDuration,
 		MeshFailurePenaltyWeight:        meshWeight,
-		MeshFailurePenaltyDecay:         scoreDecay(meshDecay * oneEpochDuration()),
+		MeshFailurePenaltyDecay:         scoreDecay(meshDecay * oneEpochDuration),
 		InvalidMessageDeliveriesWeight:  -maxScore() / topicWeight,
 		InvalidMessageDeliveriesDecay:   scoreDecay(invalidDecayPeriod),
 	}
@@ -557,18 +559,10 @@ func defaultLightClientFinalityUpdateTopicParams() *pubsub.TopicScoreParams {
 	}
 }
 
-func oneSlotDuration() time.Duration {
-	return time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
-}
-
-func oneEpochDuration() time.Duration {
-	return time.Duration(params.BeaconConfig().SlotsPerEpoch) * oneSlotDuration()
-}
-
 // determines the decay rate from the provided time period till
 // the decayToZero value. Ex: ( 1 -> 0.01)
 func scoreDecay(totalDurationDecay time.Duration) float64 {
-	numOfTimes := totalDurationDecay / oneSlotDuration()
+	numOfTimes := totalDurationDecay / oneSlotDuration
 	return math.Pow(decayToZero, 1/float64(numOfTimes))
 }
 
@@ -621,7 +615,7 @@ func maxScore() float64 {
 
 // denotes the unit time in mesh for scoring tallying.
 func inMeshTime() time.Duration {
-	return 1 * oneSlotDuration()
+	return 1 * oneSlotDuration
 }
 
 // the cap for `inMesh` time scoring.

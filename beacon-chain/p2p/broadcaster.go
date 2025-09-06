@@ -159,7 +159,7 @@ func (s *Service) broadcastSyncCommittee(ctx context.Context, subnet uint64, sMs
 	defer span.End()
 	ctx = trace.NewContext(context.Background(), span) // clear parent context / deadline.
 
-	oneSlot := time.Duration(1*params.BeaconConfig().SecondsPerSlot) * time.Second
+	oneSlot := time.Duration(1*slots.CurrentSecondsPerSlot(s.genesisTime)) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, oneSlot)
 	defer cancel()
 
@@ -232,7 +232,7 @@ func (s *Service) internalBroadcastBlob(ctx context.Context, subnet uint64, blob
 	defer span.End()
 	ctx = trace.NewContext(context.Background(), span) // clear parent context / deadline.
 
-	oneSlot := time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
+	oneSlot := time.Duration(slots.CurrentSecondsPerSlot(s.genesisTime)) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, oneSlot)
 	defer cancel()
 
@@ -350,8 +350,7 @@ func (s *Service) internalBroadcastDataColumnSidecar(
 	dataColumnSidecarBroadcastAttempts.Inc()
 
 	// Define a one-slot length context timeout.
-	secondsPerSlot := params.BeaconConfig().SecondsPerSlot
-	oneSlot := time.Duration(secondsPerSlot) * time.Second
+	oneSlot := time.Duration(slots.CurrentSecondsPerSlot(s.genesisTime)) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, oneSlot)
 	defer cancel()
 

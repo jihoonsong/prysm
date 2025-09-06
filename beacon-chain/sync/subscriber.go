@@ -505,7 +505,7 @@ func (s *Service) subscribeWithParameters(p subscribeParameters) {
 		log.WithError(err).Error("Could not subscribe to subnets")
 	}
 
-	slotDuration := time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
+	slotDuration := time.Duration(slots.CurrentSecondsPerSlot(s.cfg.clock.GenesisTime())) * time.Second
 	minimumPeersPerSubnet := flags.Get().MinimumPeersPerSubnet
 	// Subscribe to expected subnets and search for peers if needed at every slot.
 	go func() {
@@ -527,6 +527,7 @@ func (s *Service) subscribeWithParameters(p subscribeParameters) {
 			select {
 			case <-slotTicker.C():
 				currentSlot := s.cfg.clock.CurrentSlot()
+				slotDuration = time.Duration(slots.SecondsPerSlot(currentSlot)) * time.Second
 				neededSubnets := computeAllNeededSubnets(currentSlot, p.getSubnetsToJoin, p.getSubnetsRequiringPeers)
 
 				if err := s.subscribeToSubnets(parameters); err != nil {

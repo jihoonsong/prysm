@@ -184,7 +184,7 @@ func (s *Server) StreamEvents(w http.ResponseWriter, r *http.Request) {
 
 	timeout := s.EventWriteTimeout
 	if timeout == 0 {
-		timeout = time.Duration(params.BeaconConfig().SecondsPerSlot) * time.Second
+		timeout = time.Duration(slots.CurrentSecondsPerSlot(s.ChainInfoFetcher.GenesisTime())) * time.Second
 	}
 	ka := s.KeepAliveInterval
 	if ka == 0 {
