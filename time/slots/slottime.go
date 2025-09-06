@@ -152,6 +152,14 @@ func SinceEpochStarts(slot primitives.Slot) primitives.Slot {
 	return slot % params.BeaconConfig().SlotsPerEpoch
 }
 
+func CurrentSecondsPerSlot(genesis time.Time) uint64 {
+	return SecondsPerSlot(CurrentSlot(genesis))
+}
+
+func CurrentMillisecondsPerSlot(genesis time.Time) uint64 {
+	return MillisecondsPerSlot(CurrentSlot(genesis))
+}
+
 func SecondsPerSlot(slot primitives.Slot) uint64 {
 	return MillisecondsPerSlot(slot) / 1000
 }
