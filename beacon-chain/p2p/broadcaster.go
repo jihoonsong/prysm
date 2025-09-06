@@ -35,7 +35,8 @@ func (s *Service) Broadcast(ctx context.Context, msg proto.Message) error {
 	ctx, span := trace.StartSpan(ctx, "p2p.Broadcast")
 	defer span.End()
 
-	twoSlots := time.Duration(2*params.BeaconConfig().SecondsPerSlot) * time.Second
+	currentSlot := slots.CurrentSlot(s.genesisTime)
+	twoSlots := slots.SecondsInSlotRange(currentSlot, currentSlot+2)
 	ctx, cancel := context.WithTimeout(ctx, twoSlots)
 	defer cancel()
 
@@ -105,7 +106,8 @@ func (s *Service) internalBroadcastAttestation(ctx context.Context, subnet uint6
 	defer span.End()
 	ctx = trace.NewContext(context.Background(), span) // clear parent context / deadline.
 
-	oneEpoch := time.Duration(1*params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second
+	currentSlot := slots.CurrentSlot(s.genesisTime)
+	oneEpoch := slots.SecondsInSlotRange(currentSlot, currentSlot+params.BeaconConfig().SlotsPerEpoch)
 	ctx, cancel := context.WithTimeout(ctx, oneEpoch)
 	defer cancel()
 

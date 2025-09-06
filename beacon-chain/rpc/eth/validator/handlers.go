@@ -11,7 +11,6 @@ import (
 	"slices"
 	"sort"
 	"strconv"
-	"time"
 
 	"github.com/OffchainLabs/prysm/v6/api"
 	"github.com/OffchainLabs/prysm/v6/api/server/structs"
@@ -514,15 +513,7 @@ func (s *Server) SubmitSyncCommitteeSubscription(w http.ResponseWriter, r *http.
 
 	for i, sub := range subscriptions {
 		pubkey48 := validators[i].PublicKey()
-		// Handle overflow in the event current epoch is less than end epoch.
-		// This is an impossible condition, so it is a defensive check.
-		epochsToWatch, err := sub.UntilEpoch.SafeSub(uint64(startEpoch))
-		if err != nil {
-			epochsToWatch = 0
-		}
-		epochDuration := time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second
-		totalDuration := epochDuration * time.Duration(epochsToWatch)
-
+		totalDuration := slots.SecondsInEpochRange(startEpoch, sub.UntilEpoch)
 		cache.SyncSubnetIDs.AddSyncCommitteeSubnets(pubkey48[:], startEpoch, sub.SyncCommitteeIndices, totalDuration)
 	}
 }

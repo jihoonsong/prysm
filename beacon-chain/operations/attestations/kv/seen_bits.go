@@ -1,9 +1,10 @@
 package kv
 
 import (
+	"github.com/OffchainLabs/prysm/v6/config/params"
 	ethpb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
 	"github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1/attestation"
-	"github.com/patrickmn/go-cache"
+	"github.com/OffchainLabs/prysm/v6/time/slots"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/go-bitfield"
 )
@@ -13,6 +14,9 @@ func (c *AttCaches) insertSeenBit(att ethpb.Att) error {
 	if err != nil {
 		return errors.Wrap(err, "could not create attestation ID")
 	}
+	slot := att.GetData().Slot
+	twoEpochSlots := 2 * params.BeaconConfig().SlotsPerEpoch
+	twoEpochSeconds := slots.SecondsInSlotRange(slot, slot+twoEpochSlots)
 
 	v, ok := c.seenAtt.Get(id.String())
 	if ok {
@@ -32,11 +36,11 @@ func (c *AttCaches) insertSeenBit(att ethpb.Att) error {
 		if !alreadyExists {
 			seenBits = append(seenBits, att.GetAggregationBits())
 		}
-		c.seenAtt.Set(id.String(), seenBits, cache.DefaultExpiration /* one epoch */)
+		c.seenAtt.Set(id.String(), seenBits, twoEpochSeconds)
 		return nil
 	}
 
-	c.seenAtt.Set(id.String(), []bitfield.Bitlist{att.GetAggregationBits()}, cache.DefaultExpiration /* one epoch */)
+	c.seenAtt.Set(id.String(), []bitfield.Bitlist{att.GetAggregationBits()}, twoEpochSeconds)
 	return nil
 }
 

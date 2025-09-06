@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/cache"
 	"github.com/OffchainLabs/prysm/v6/beacon-chain/core/altair"
@@ -731,15 +730,7 @@ func registerSyncSubnetInternal(
 		return
 	}
 	subs := subnetsFromCommittee(pubkey, syncCommittee)
-	// Handle overflow in the event current epoch is less
-	// than end epoch. This is an impossible condition, so
-	// it is a defensive check.
-	epochsToWatch, err := endEpoch.SafeSub(uint64(currEpoch))
-	if err != nil {
-		epochsToWatch = 0
-	}
-	epochDuration := time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
-	totalDuration := epochDuration * time.Duration(epochsToWatch) * time.Second
+	totalDuration := slots.SecondsInEpochRange(startEpoch, endEpoch)
 	cache.SyncSubnetIDs.AddSyncCommitteeSubnets(pubkey, startEpoch, subs, totalDuration)
 }
 

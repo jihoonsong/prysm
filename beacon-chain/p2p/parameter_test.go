@@ -2,9 +2,11 @@ package p2p
 
 import (
 	"testing"
+	"time"
 
 	"github.com/OffchainLabs/prysm/v6/config/params"
 	"github.com/OffchainLabs/prysm/v6/testing/assert"
+	"github.com/OffchainLabs/prysm/v6/time/slots"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
 
@@ -18,11 +20,13 @@ func TestOverlayParameters(t *testing.T) {
 
 func TestGossipParameters(t *testing.T) {
 	params.SetupTestConfigCleanup(t)
-	setPubSubParameters()
+	setPubSubParameters(time.Unix(0, 0))
 	pms := pubsubGossipParam()
+	currentSlot := slots.CurrentSlot(time.Unix(0, 0))
+	twoEpochSeconds := slots.SecondsInSlotRange(currentSlot, currentSlot+2*params.BeaconConfig().SlotsPerEpoch)
 	assert.Equal(t, gossipSubMcacheLen, pms.HistoryLength, "gossipSubMcacheLen")
 	assert.Equal(t, gossipSubMcacheGossip, pms.HistoryGossip, "gossipSubMcacheGossip")
-	assert.Equal(t, gossipSubSeenTTL, int(pubsub.TimeCacheDuration.Seconds()), "gossipSubSeenTtl")
+	assert.Equal(t, int(twoEpochSeconds.Seconds()), int(pubsub.TimeCacheDuration.Seconds()), "gossipSubSeenTtl")
 }
 
 func TestFanoutParameters(t *testing.T) {
@@ -43,6 +47,6 @@ func TestHeartbeatParameters(t *testing.T) {
 
 func TestMiscParameters(t *testing.T) {
 	params.SetupTestConfigCleanup(t)
-	setPubSubParameters()
+	setPubSubParameters(time.Unix(0, 0))
 	assert.Equal(t, rSubD, 8, "rSubD")
 }

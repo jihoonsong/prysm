@@ -20,6 +20,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/encoding/bytesutil"
 	"github.com/OffchainLabs/prysm/v6/monitoring/tracing/trace"
 	pb "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
+	"github.com/OffchainLabs/prysm/v6/time/slots"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/holiman/uint256"
@@ -549,9 +550,8 @@ func computeSubscriptionExpirationTime(nodeID enode.ID, epoch primitives.Epoch) 
 	nodeOffset, _ := computeOffsetAndPrefix(nodeID)
 	pastEpochs := (nodeOffset + uint64(epoch)) % params.BeaconConfig().EpochsPerSubnetSubscription
 	remEpochs := params.BeaconConfig().EpochsPerSubnetSubscription - pastEpochs
-	epochDuration := time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
-	epochTime := time.Duration(remEpochs) * epochDuration
-	return epochTime * time.Second
+	epochTime := slots.SecondsInEpochRange(epoch, epoch.Add(remEpochs))
+	return epochTime
 }
 
 func computeOffsetAndPrefix(nodeID enode.ID) (uint64, uint64) {

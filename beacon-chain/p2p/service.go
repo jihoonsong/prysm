@@ -163,7 +163,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	psOpts := s.pubsubOptions()
 
 	// Set the pubsub global parameters that we require.
-	setPubSubParameters()
+	setPubSubParameters(s.genesisTime)
 
 	// Reinitialize them in the event we are running a custom config.
 	attestationSubnetCount = params.BeaconConfig().AttestationSubnetCount

@@ -13,6 +13,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/encoding/bytesutil"
 	mathutil "github.com/OffchainLabs/prysm/v6/math"
 	pbrpc "github.com/OffchainLabs/prysm/v6/proto/prysm/v1alpha1"
+	"github.com/OffchainLabs/prysm/v6/time/slots"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsubpb "github.com/libp2p/go-libp2p-pubsub/pb"
 	"github.com/libp2p/go-libp2p/core/peer"
@@ -26,9 +27,8 @@ const (
 	gossipSubDhi = 12 // topic stable mesh high watermark
 
 	// gossip parameters
-	gossipSubMcacheLen    = 6   // number of windows to retain full messages in cache for `IWANT` responses
-	gossipSubMcacheGossip = 3   // number of windows to gossip about
-	gossipSubSeenTTL      = 768 // number of seconds to retain message IDs ( 2 epochs)
+	gossipSubMcacheLen    = 6 // number of windows to retain full messages in cache for `IWANT` responses
+	gossipSubMcacheGossip = 3 // number of windows to gossip about
 
 	// fanout ttl
 	gossipSubFanoutTTL = 60000000000 // TTL for fanout maps for topics we are not subscribed to but have published to, in nano seconds
@@ -194,8 +194,9 @@ func pubsubGossipParam() pubsub.GossipSubParams {
 // We have to unfortunately set this globally in order
 // to configure our message id time-cache rather than instantiating
 // it with a router instance.
-func setPubSubParameters() {
-	seenTtl := 2 * time.Second * time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot))
+func setPubSubParameters(genesisTime time.Time) {
+	currentSlot := slots.CurrentSlot(genesisTime)
+	seenTtl := slots.SecondsInSlotRange(currentSlot, currentSlot+2*params.BeaconConfig().SlotsPerEpoch)
 	pubsub.TimeCacheDuration = seenTtl
 }
 
