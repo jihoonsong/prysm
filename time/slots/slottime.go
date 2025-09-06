@@ -326,16 +326,26 @@ func SinceSlotStart(s primitives.Slot, genesis time.Time, timestamp time.Time) (
 	return timestamp.Sub(limit), nil
 }
 
+func SyncMessageWindow(slot primitives.Slot) time.Duration {
+	if PostEip7782(slot) {
+		return time.Duration(params.BeaconConfig().SlotDurationMsEip7782*params.BeaconConfig().SyncMessageDueBpsEip7782/10000) * time.Millisecond
+	} else {
+		return time.Duration(params.BeaconConfig().SlotDurationMs*params.BeaconConfig().SyncMessageDueBps/10000) * time.Millisecond
+	}
+}
+
+func VotingWindow(slot primitives.Slot) time.Duration {
+	if PostEip7782(slot) {
+		return time.Duration(params.BeaconConfig().SlotDurationMsEip7782*params.BeaconConfig().AttestationDueBpsEip7782/10000) * time.Millisecond
+	} else {
+		return time.Duration(params.BeaconConfig().SlotDurationMs*params.BeaconConfig().AttestationDueBps/10000) * time.Millisecond
+	}
+}
+
 // WithinVotingWindow returns whether the current time is within the voting window
 // (eg. 4 seconds on mainnet) of the current slot.
 func WithinVotingWindow(genesis time.Time, slot primitives.Slot) bool {
-	var votingWindow uint64
-	if PostEip7782(slot) {
-		votingWindow = params.BeaconConfig().SlotDurationMsEip7782 * params.BeaconConfig().AttestationDueBpsEip7782 / 10000
-	} else {
-		votingWindow = params.BeaconConfig().SlotDurationMs * params.BeaconConfig().AttestationDueBps / 10000
-	}
-	return time.Since(UnsafeStartTime(genesis, slot)) < time.Duration(votingWindow)*time.Millisecond
+	return time.Since(UnsafeStartTime(genesis, slot)) < VotingWindow(slot)
 }
 
 // MaxSafeEpoch gives the largest epoch value that can be safely converted to a slot.

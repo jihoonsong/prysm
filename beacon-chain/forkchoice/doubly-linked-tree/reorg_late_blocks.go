@@ -4,12 +4,15 @@ import (
 	"time"
 
 	"github.com/OffchainLabs/prysm/v6/config/params"
+	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
 	"github.com/OffchainLabs/prysm/v6/time/slots"
 )
 
 // orphanLateBlockProposingEarly determines the maximum threshold that we
 // consider the node is proposing early and sure to receive proposer boost
-const orphanLateBlockProposingEarly = 2
+func orphanLateBlockProposingEarly(slot primitives.Slot) time.Duration {
+	return time.Duration(slots.SecondsPerSlot(slot)*params.BeaconConfig().ProposerReorgCutoffBps/10000) * time.Second
+}
 
 // ShouldOverrideFCU returns whether the current forkchoice head is weak
 // and thus may be reorged when proposing the next block.
@@ -88,7 +91,7 @@ func (f *ForkChoice) ShouldOverrideFCU() (override bool) {
 		log.WithError(err).Error("could not check current slot")
 		return true
 	}
-	if sss < ProcessAttestationsThreshold {
+	if sss < ProcessAttestationsThreshold(head.slot) {
 		return true
 	}
 	// Only orphan a block if the parent LMD vote is strong
@@ -158,7 +161,7 @@ func (f *ForkChoice) GetProposerHead() [32]byte {
 		log.WithError(err).Error("could not check if proposing early")
 		return head.root
 	}
-	if sss >= orphanLateBlockProposingEarly*time.Second {
+	if sss >= orphanLateBlockProposingEarly(currentSlot) {
 		return head.root
 	}
 	return parent.root

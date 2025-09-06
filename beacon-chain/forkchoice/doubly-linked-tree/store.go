@@ -133,13 +133,9 @@ func (s *Store) insert(ctx context.Context,
 			return n, nil
 		}
 		currentSlot := slots.CurrentSlot(s.genesisTime)
-		sss, err := slots.SinceSlotStart(currentSlot, s.genesisTime, now)
-		if err != nil {
-			return nil, fmt.Errorf("could not determine time since current slot started: %w", err)
-		}
-		boostThreshold := time.Duration(params.BeaconConfig().SecondsPerSlot/params.BeaconConfig().IntervalsPerSlot) * time.Second
+		isTimely := slots.WithinVotingWindow(s.genesisTime, currentSlot)
 		isFirstBlock := s.proposerBoostRoot == [32]byte{}
-		if currentSlot == slot && sss < boostThreshold && isFirstBlock {
+		if currentSlot == slot && isTimely && isFirstBlock {
 			s.proposerBoostRoot = root
 		}
 

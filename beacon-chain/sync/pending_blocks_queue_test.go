@@ -900,7 +900,9 @@ func TestExpirationCache_PruneOldBlocksCorrectly(t *testing.T) {
 	defer func() {
 		pendingBlockExpTime = currExpTime
 	}()
-	pendingBlockExpTime = 500 * time.Millisecond
+	pendingBlockExpTime = func(_ primitives.Slot) time.Duration {
+		return 500 * time.Millisecond
+	}
 
 	r := NewService(ctx,
 		WithStateGen(stategen.New(db, doublylinkedtree.New())),
@@ -932,7 +934,7 @@ func TestExpirationCache_PruneOldBlocksCorrectly(t *testing.T) {
 	require.Equal(t, 2, len(r.pendingBlocksInCache(1)))
 
 	// Wait for expiration cache to cleanup and remove old block.
-	time.Sleep(2 * pendingBlockExpTime)
+	time.Sleep(2 * pendingBlockExpTime(1))
 
 	// Run pending queue with expired blocks.
 	require.NoError(t, r.processPendingBlocks(ctx))

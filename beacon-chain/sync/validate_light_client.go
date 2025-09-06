@@ -3,7 +3,6 @@ package sync
 import (
 	"context"
 	"fmt"
-	"time"
 
 	lightclient "github.com/OffchainLabs/prysm/v6/beacon-chain/core/light-client"
 	"github.com/OffchainLabs/prysm/v6/config/params"
@@ -57,7 +56,7 @@ func (s *Service) validateLightClientOptimisticUpdate(ctx context.Context, pid p
 		return pubsub.ValidationReject, nil
 	}
 	earliestValidTime := slotStart.
-		Add(time.Second * time.Duration(params.BeaconConfig().SecondsPerSlot/params.BeaconConfig().IntervalsPerSlot)).
+		Add(slots.SyncMessageWindow(newUpdate.SignatureSlot())).
 		Add(-params.BeaconConfig().MaximumGossipClockDisparityDuration())
 	if s.cfg.clock.Now().Before(earliestValidTime) {
 		log.Debug("Newly received light client optimistic update ignored. not enough time passed for block to propagate")
@@ -124,7 +123,7 @@ func (s *Service) validateLightClientFinalityUpdate(ctx context.Context, pid pee
 		return pubsub.ValidationReject, nil
 	}
 	earliestValidTime := slotStart.
-		Add(time.Second * time.Duration(params.BeaconConfig().SecondsPerSlot/params.BeaconConfig().IntervalsPerSlot)).
+		Add(slots.SyncMessageWindow(newUpdate.SignatureSlot())).
 		Add(-params.BeaconConfig().MaximumGossipClockDisparityDuration())
 	if s.cfg.clock.Now().Before(earliestValidTime) {
 		log.Debug("Newly received light client finality update ignored. not enough time passed for block to propagate")

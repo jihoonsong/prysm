@@ -14,7 +14,9 @@ import (
 
 // ProcessAttestationsThreshold is the amount of time after which we
 // process attestations for the current slot
-const ProcessAttestationsThreshold = 10 * time.Second
+func ProcessAttestationsThreshold(slot primitives.Slot) time.Duration {
+	return slots.AttestationsProcess.Intervals(slot)[1]
+}
 
 // applyWeightChanges recomputes the weight of the node passed as an argument and all of its descendants,
 // using the current balance stored in each node.
@@ -134,7 +136,7 @@ func (n *Node) setNodeAndParentValidated(ctx context.Context) error {
 // slot will have secs = 3 below.
 func (n *Node) arrivedEarly(genesis time.Time) (bool, error) {
 	sss, err := slots.SinceSlotStart(n.slot, genesis, n.timestamp.Truncate(time.Second)) // Truncate such that 3.9999 seconds will have a value of 3.
-	votingWindow := time.Duration(params.BeaconConfig().SecondsPerSlot/params.BeaconConfig().IntervalsPerSlot) * time.Second
+	votingWindow := slots.VotingWindow(n.slot)
 	return sss < votingWindow, err
 }
 
@@ -145,7 +147,7 @@ func (n *Node) arrivedEarly(genesis time.Time) (bool, error) {
 // slot will have secs = 10 below.
 func (n *Node) arrivedAfterOrphanCheck(genesis time.Time) (bool, error) {
 	secs, err := slots.SinceSlotStart(n.slot, genesis, n.timestamp.Truncate(time.Second)) // Truncate such that 10.00001 seconds will have a value of 10.
-	return secs >= ProcessAttestationsThreshold, err
+	return secs >= ProcessAttestationsThreshold(n.slot), err
 }
 
 // nodeTreeDump appends to the given list all the nodes descending from this one

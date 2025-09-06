@@ -543,7 +543,7 @@ func (s *Service) deleteBlockFromPendingQueue(slot primitives.Slot, b interfaces
 	}
 
 	// Decrease exp time in proportion to how many blocks are still in the cache for slot key.
-	d := pendingBlockExpTime / time.Duration(len(newBlks))
+	d := pendingBlockExpTime(slot) / time.Duration(len(newBlks))
 	if err := s.slotToPendingBlocks.Replace(slotToCacheKey(slot), newBlks, d); err != nil {
 		return err
 	}
@@ -605,7 +605,7 @@ func (s *Service) addPendingBlockToCache(b interfaces.ReadOnlySignedBeaconBlock)
 
 	blks = append(blks, b)
 	k := slotToCacheKey(b.Block().Slot())
-	s.slotToPendingBlocks.Set(k, blks, pendingBlockExpTime)
+	s.slotToPendingBlocks.Set(k, blks, pendingBlockExpTime(b.Block().Slot()))
 	return nil
 }
 

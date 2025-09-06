@@ -151,7 +151,7 @@ func (s *Service) validateBeaconBlockPubSub(ctx context.Context, pid peer.ID, ms
 	// MAXIMUM_GOSSIP_CLOCK_DISPARITY in future, we tolerate blocks arriving at max two slots
 	// earlier (SECONDS_PER_SLOT * 2 seconds). Queue such blocks and process them at the right slot.
 	genesisTime := s.cfg.clock.GenesisTime()
-	if err := slots.VerifyTime(genesisTime, blk.Block().Slot(), earlyBlockProcessingTolerance); err != nil {
+	if err := slots.VerifyTime(genesisTime, blk.Block().Slot(), earlyBlockProcessingTolerance(blk.Block().Slot())); err != nil {
 		log.WithError(err).WithFields(getBlockFields(blk)).Debug("Ignored block: could not verify slot time")
 		return pubsub.ValidationIgnore, nil
 	}

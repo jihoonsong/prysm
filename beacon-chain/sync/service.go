@@ -36,6 +36,7 @@ import (
 	"github.com/OffchainLabs/prysm/v6/config/params"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/blocks"
 	"github.com/OffchainLabs/prysm/v6/consensus-types/interfaces"
+	"github.com/OffchainLabs/prysm/v6/consensus-types/primitives"
 	leakybucket "github.com/OffchainLabs/prysm/v6/container/leaky-bucket"
 	"github.com/OffchainLabs/prysm/v6/crypto/rand"
 	"github.com/OffchainLabs/prysm/v6/runtime"
@@ -70,9 +71,13 @@ const (
 
 var (
 	// Seconds in one epoch.
-	pendingBlockExpTime = time.Duration(params.BeaconConfig().SlotsPerEpoch.Mul(params.BeaconConfig().SecondsPerSlot)) * time.Second
+	pendingBlockExpTime = func(slot primitives.Slot) time.Duration {
+		return slots.SecondsInSlotRange(slot, slot+params.BeaconConfig().SlotsPerEpoch)
+	}
 	// time to allow processing early blocks.
-	earlyBlockProcessingTolerance = slots.MultiplySlotBy(2)
+	earlyBlockProcessingTolerance = func(slot primitives.Slot) time.Duration {
+		return slots.SecondsInSlotRange(slot, slot+2)
+	}
 	// time to allow processing early attestations.
 	earlyAttestationProcessingTolerance = params.BeaconConfig().MaximumGossipClockDisparityDuration()
 	errWrongMessage                     = errors.New("wrong pubsub message")
@@ -188,7 +193,7 @@ func NewService(ctx context.Context, opts ...Option) *Service {
 		cancel:                cancel,
 		chainStarted:          abool.New(),
 		cfg:                   &config{clock: startup.NewClock(time.Unix(0, 0), [32]byte{})},
-		slotToPendingBlocks:   gcache.New(pendingBlockExpTime /* exp time */, 0 /* disable janitor */),
+		slotToPendingBlocks:   gcache.New(pendingBlockExpTime(0) /* exp time */, 0 /* disable janitor */),
 		seenPendingBlocks:     make(map[[32]byte]bool),
 		blkRootToPendingAtts:  make(map[[32]byte][]any),
 		dataColumnLogCh:       make(chan dataColumnLogEntry, 1000),
