@@ -39,15 +39,15 @@ func EpochsSinceGenesis(genesis time.Time) primitives.Epoch {
 // parameter by a specified number. It returns a value of time.Duration
 // in milliseconds, useful for dividing values such as 1 second into
 // millisecond-based durations.
-func DivideSlotBy(timesPerSlot int64) time.Duration {
-	return time.Duration(int64(params.BeaconConfig().SecondsPerSlot*1000)/timesPerSlot) * time.Millisecond
+func DivideSlotBy(slot primitives.Slot, timesPerSlot uint64) time.Duration {
+	return time.Duration(SecondsPerSlot(slot)*1000/timesPerSlot) * time.Millisecond
 }
 
 // MultiplySlotBy multiplies the SECONDS_PER_SLOT configuration
 // parameter by a specified number. It returns a value of time.Duration
 // in millisecond-based durations.
-func MultiplySlotBy(times int64) time.Duration {
-	return time.Duration(int64(params.BeaconConfig().SecondsPerSlot)*times) * time.Second
+func MultiplySlotBy(slot primitives.Slot, times uint64) time.Duration {
+	return time.Duration(SecondsPerSlot(slot)*times) * time.Second
 }
 
 // AbsoluteValueSlotDifference between two slots.
