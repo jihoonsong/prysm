@@ -172,6 +172,35 @@ func MillisecondsPerSlot(slot primitives.Slot) uint64 {
 	}
 }
 
+// SecondsInEpochRange returns the number of seconds in the epoch range exclusive, i.e., [start, end).
+func SecondsInEpochRange(start primitives.Epoch, end primitives.Epoch) time.Duration {
+	return SecondsInSlotRange(UnsafeEpochStart(start), UnsafeEpochStart(end))
+}
+
+// SecondsInSlotRange returns the number of seconds in the slot range exclusive, i.e., [start, end).
+func SecondsInSlotRange(start primitives.Slot, end primitives.Slot) time.Duration {
+	if start >= end {
+		return 0
+	}
+
+	var slotsPreEip7782 primitives.Slot
+	var slotsPostEip7782 primitives.Slot
+	if PostEip7782(start) {
+		slotsPostEip7782 = end - start
+	} else if !PostEip7782(end) {
+		slotsPreEip7782 = end - start
+	} else {
+		eip7782ForkSlot := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().Eip7782ForkEpoch))
+		slotsPreEip7782 = eip7782ForkSlot - start
+		slotsPostEip7782 = end - eip7782ForkSlot
+	}
+
+	secondsPreEip7782 := time.Duration(params.BeaconConfig().SlotDurationMs*uint64(slotsPreEip7782)) * time.Millisecond
+	secondsPostEip7782 := time.Duration(params.BeaconConfig().SlotDurationMsEip7782*uint64(slotsPostEip7782)) * time.Millisecond
+
+	return secondsPreEip7782 + secondsPostEip7782
+}
+
 // VerifyTime validates the input slot is not from the future.
 func VerifyTime(genesis time.Time, slot primitives.Slot, timeTolerance time.Duration) error {
 	slotTime, err := StartTime(genesis, slot)
@@ -201,15 +230,8 @@ func StartTime(genesis time.Time, slot primitives.Slot) (time.Time, error) {
 	if err != nil {
 		return time.Unix(0, 0), fmt.Errorf("slot (%d) is in the far distant future: %w", slot, err)
 	}
-	if PostEip7782(slot) {
-		eip7782ForkSlot := params.BeaconConfig().SlotsPerEpoch.Mul(uint64(params.BeaconConfig().Eip7782ForkEpoch))
-		eip7782ForkTime := genesis.Add(time.Duration(params.BeaconConfig().SlotDurationMs*uint64(eip7782ForkSlot)) * time.Millisecond)
-		sd := time.Duration(params.BeaconConfig().SlotDurationMsEip7782*uint64(slot-eip7782ForkSlot)) * time.Millisecond
-		return eip7782ForkTime.Add(sd), nil
-	} else {
-		sd := time.Duration(params.BeaconConfig().SlotDurationMs*uint64(slot)) * time.Millisecond
-		return genesis.Add(sd), nil
-	}
+	sd := SecondsInSlotRange(0, slot)
+	return genesis.Add(sd), nil
 }
 
 // CurrentSlot returns the current slot as determined by the local clock and
