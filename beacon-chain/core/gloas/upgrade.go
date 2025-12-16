@@ -17,8 +17,6 @@ import (
 // UpgradeToGloas updates inputs a generic state to return the version Gloas state.
 // This implements the upgrade_to_eip7928 function from the specification.
 func UpgradeToGloas(ctx context.Context, beaconState state.BeaconState) (state.BeaconState, error) {
-	epoch := time.CurrentEpoch(beaconState)
-
 	currentSyncCommittee, err := beaconState.CurrentSyncCommittee()
 	if err != nil {
 		return nil, err
@@ -112,59 +110,54 @@ func UpgradeToGloas(ctx context.Context, beaconState state.BeaconState) (state.B
 		return nil, err
 	}
 
-	// Create the new Gloas execution payload header with block_access_list_root
-	// as specified in the EIP7928 upgrade function
-	latestExecutionPayloadHeader := &enginev1.ExecutionPayloadHeaderGloas{
-		ParentHash:          payloadHeader.ParentHash(),
-		FeeRecipient:        payloadHeader.FeeRecipient(),
-		StateRoot:           payloadHeader.StateRoot(),
-		ReceiptsRoot:        payloadHeader.ReceiptsRoot(),
-		LogsBloom:           payloadHeader.LogsBloom(),
-		PrevRandao:          payloadHeader.PrevRandao(),
-		BlockNumber:         payloadHeader.BlockNumber(),
-		GasLimit:            payloadHeader.GasLimit(),
-		GasUsed:             payloadHeader.GasUsed(),
-		Timestamp:           payloadHeader.Timestamp(),
-		ExtraData:           payloadHeader.ExtraData(),
-		BaseFeePerGas:       payloadHeader.BaseFeePerGas(),
-		BlockHash:           payloadHeader.BlockHash(),
-		TransactionsRoot:    txRoot,
-		WithdrawalsRoot:     wdRoot,
-		BlobGasUsed:         blobGasUsed,
-		ExcessBlobGas:       excessBlobGas,
-		BlockAccessListRoot: make([]byte, 32), // New in EIP7928 - empty Root()
-	}
-
 	s := &ethpb.BeaconStateGloas{
 		GenesisTime:           uint64(beaconState.GenesisTime().Unix()),
 		GenesisValidatorsRoot: beaconState.GenesisValidatorsRoot(),
 		Slot:                  beaconState.Slot(),
 		Fork: &ethpb.Fork{
 			PreviousVersion: beaconState.Fork().CurrentVersion,
-			CurrentVersion:  params.BeaconConfig().GloasForkVersion, // Modified in EIP7928
-			Epoch:           epoch,
+			CurrentVersion:  params.BeaconConfig().GloasForkVersion,
+			Epoch:           time.CurrentEpoch(beaconState),
 		},
-		LatestBlockHeader:             beaconState.LatestBlockHeader(),
-		BlockRoots:                    beaconState.BlockRoots(),
-		StateRoots:                    beaconState.StateRoots(),
-		HistoricalRoots:               beaconState.HistoricalRoots(),
-		Eth1Data:                      beaconState.Eth1Data(),
-		Eth1DataVotes:                 beaconState.Eth1DataVotes(),
-		Eth1DepositIndex:              beaconState.Eth1DepositIndex(),
-		Validators:                    beaconState.Validators(),
-		Balances:                      beaconState.Balances(),
-		RandaoMixes:                   beaconState.RandaoMixes(),
-		Slashings:                     beaconState.Slashings(),
-		PreviousEpochParticipation:    prevEpochParticipation,
-		CurrentEpochParticipation:     currentEpochParticipation,
-		JustificationBits:             beaconState.JustificationBits(),
-		PreviousJustifiedCheckpoint:   beaconState.PreviousJustifiedCheckpoint(),
-		CurrentJustifiedCheckpoint:    beaconState.CurrentJustifiedCheckpoint(),
-		FinalizedCheckpoint:           beaconState.FinalizedCheckpoint(),
-		InactivityScores:              inactivityScores,
-		CurrentSyncCommittee:          currentSyncCommittee,
-		NextSyncCommittee:             nextSyncCommittee,
-		LatestExecutionPayloadHeader:  latestExecutionPayloadHeader,
+		LatestBlockHeader:           beaconState.LatestBlockHeader(),
+		BlockRoots:                  beaconState.BlockRoots(),
+		StateRoots:                  beaconState.StateRoots(),
+		HistoricalRoots:             beaconState.HistoricalRoots(),
+		Eth1Data:                    beaconState.Eth1Data(),
+		Eth1DataVotes:               beaconState.Eth1DataVotes(),
+		Eth1DepositIndex:            beaconState.Eth1DepositIndex(),
+		Validators:                  beaconState.Validators(),
+		Balances:                    beaconState.Balances(),
+		RandaoMixes:                 beaconState.RandaoMixes(),
+		Slashings:                   beaconState.Slashings(),
+		PreviousEpochParticipation:  prevEpochParticipation,
+		CurrentEpochParticipation:   currentEpochParticipation,
+		JustificationBits:           beaconState.JustificationBits(),
+		PreviousJustifiedCheckpoint: beaconState.PreviousJustifiedCheckpoint(),
+		CurrentJustifiedCheckpoint:  beaconState.CurrentJustifiedCheckpoint(),
+		FinalizedCheckpoint:         beaconState.FinalizedCheckpoint(),
+		InactivityScores:            inactivityScores,
+		CurrentSyncCommittee:        currentSyncCommittee,
+		NextSyncCommittee:           nextSyncCommittee,
+		LatestExecutionPayloadHeader: &enginev1.ExecutionPayloadHeaderGloas{
+			ParentHash:       payloadHeader.ParentHash(),
+			FeeRecipient:     payloadHeader.FeeRecipient(),
+			StateRoot:        payloadHeader.StateRoot(),
+			ReceiptsRoot:     payloadHeader.ReceiptsRoot(),
+			LogsBloom:        payloadHeader.LogsBloom(),
+			PrevRandao:       payloadHeader.PrevRandao(),
+			BlockNumber:      payloadHeader.BlockNumber(),
+			GasLimit:         payloadHeader.GasLimit(),
+			GasUsed:          payloadHeader.GasUsed(),
+			Timestamp:        payloadHeader.Timestamp(),
+			ExtraData:        payloadHeader.ExtraData(),
+			BaseFeePerGas:    payloadHeader.BaseFeePerGas(),
+			BlockHash:        payloadHeader.BlockHash(),
+			TransactionsRoot: txRoot,
+			WithdrawalsRoot:  wdRoot,
+			BlobGasUsed:      blobGasUsed,
+			ExcessBlobGas:    excessBlobGas,
+		},
 		NextWithdrawalIndex:           wi,
 		NextWithdrawalValidatorIndex:  vi,
 		HistoricalSummaries:           summaries,

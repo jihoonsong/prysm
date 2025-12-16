@@ -351,24 +351,23 @@ type ExecutionPayloadDenebJSON struct {
 }
 
 type ExecutionPayloadGloasJSON struct {
-	ParentHash      *common.Hash    `json:"parentHash"`
-	FeeRecipient    *common.Address `json:"feeRecipient"`
-	StateRoot       *common.Hash    `json:"stateRoot"`
-	ReceiptsRoot    *common.Hash    `json:"receiptsRoot"`
-	LogsBloom       *hexutil.Bytes  `json:"logsBloom"`
-	PrevRandao      *common.Hash    `json:"prevRandao"`
-	BlockNumber     *hexutil.Uint64 `json:"blockNumber"`
-	GasLimit        *hexutil.Uint64 `json:"gasLimit"`
-	GasUsed         *hexutil.Uint64 `json:"gasUsed"`
-	Timestamp       *hexutil.Uint64 `json:"timestamp"`
-	ExtraData       hexutil.Bytes   `json:"extraData"`
-	BaseFeePerGas   string          `json:"baseFeePerGas"`
-	BlobGasUsed     *hexutil.Uint64 `json:"blobGasUsed"`
-	ExcessBlobGas   *hexutil.Uint64 `json:"excessBlobGas"`
-	BlockHash       *common.Hash    `json:"blockHash"`
-	Transactions    []hexutil.Bytes `json:"transactions"`
-	Withdrawals     []*Withdrawal   `json:"withdrawals"`
-	BlockAccessList *hexutil.Bytes  `json:"blockAccessList"`
+	ParentHash    *common.Hash    `json:"parentHash"`
+	FeeRecipient  *common.Address `json:"feeRecipient"`
+	StateRoot     *common.Hash    `json:"stateRoot"`
+	ReceiptsRoot  *common.Hash    `json:"receiptsRoot"`
+	LogsBloom     *hexutil.Bytes  `json:"logsBloom"`
+	PrevRandao    *common.Hash    `json:"prevRandao"`
+	BlockNumber   *hexutil.Uint64 `json:"blockNumber"`
+	GasLimit      *hexutil.Uint64 `json:"gasLimit"`
+	GasUsed       *hexutil.Uint64 `json:"gasUsed"`
+	Timestamp     *hexutil.Uint64 `json:"timestamp"`
+	ExtraData     hexutil.Bytes   `json:"extraData"`
+	BaseFeePerGas string          `json:"baseFeePerGas"`
+	BlobGasUsed   *hexutil.Uint64 `json:"blobGasUsed"`
+	ExcessBlobGas *hexutil.Uint64 `json:"excessBlobGas"`
+	BlockHash     *common.Hash    `json:"blockHash"`
+	Transactions  []hexutil.Bytes `json:"transactions"`
+	Withdrawals   []*Withdrawal   `json:"withdrawals"`
 }
 
 // WithdrawalRequestV1 represents an execution engine WithdrawalRequestV1 value
@@ -965,27 +964,25 @@ func (e *ExecutionPayloadGloas) MarshalJSON() ([]byte, error) {
 	}
 	blobGasUsed := hexutil.Uint64(e.BlobGasUsed)
 	excessBlobGas := hexutil.Uint64(e.ExcessBlobGas)
-	blockAccessList := hexutil.Bytes(e.BlockAccessList)
 
 	return json.Marshal(ExecutionPayloadGloasJSON{
-		ParentHash:      &pHash,
-		FeeRecipient:    &recipient,
-		StateRoot:       &sRoot,
-		ReceiptsRoot:    &recRoot,
-		LogsBloom:       &logsBloom,
-		PrevRandao:      &prevRan,
-		BlockNumber:     &blockNum,
-		GasLimit:        &gasLimit,
-		GasUsed:         &gasUsed,
-		Timestamp:       &timeStamp,
-		ExtraData:       e.ExtraData,
-		BaseFeePerGas:   baseFeeHex,
-		BlobGasUsed:     &blobGasUsed,
-		ExcessBlobGas:   &excessBlobGas,
-		BlockHash:       &bHash,
-		Transactions:    transactions,
-		Withdrawals:     withdrawals,
-		BlockAccessList: &blockAccessList,
+		ParentHash:    &pHash,
+		FeeRecipient:  &recipient,
+		StateRoot:     &sRoot,
+		ReceiptsRoot:  &recRoot,
+		LogsBloom:     &logsBloom,
+		PrevRandao:    &prevRan,
+		BlockNumber:   &blockNum,
+		GasLimit:      &gasLimit,
+		GasUsed:       &gasUsed,
+		Timestamp:     &timeStamp,
+		ExtraData:     e.ExtraData,
+		BaseFeePerGas: baseFeeHex,
+		BlobGasUsed:   &blobGasUsed,
+		ExcessBlobGas: &excessBlobGas,
+		BlockHash:     &bHash,
+		Transactions:  transactions,
+		Withdrawals:   withdrawals,
 	})
 }
 
@@ -1537,9 +1534,6 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 	if dec.ExecutionPayload.ExcessBlobGas == nil {
 		return errors.New("missing required field 'excessBlobGas' for ExecutionPayload")
 	}
-	if dec.ExecutionPayload.BlockAccessList == nil {
-		return errors.New("missing required field 'blockAccessList' for ExecutionPayload")
-	}
 
 	*e = ExecutionBundleGloas{Payload: &ExecutionPayloadGloas{}}
 	e.Payload.ParentHash = dec.ExecutionPayload.ParentHash.Bytes()
@@ -1573,8 +1567,6 @@ func (e *ExecutionBundleGloas) UnmarshalJSON(enc []byte) error {
 		dec.ExecutionPayload.Withdrawals = make([]*Withdrawal, 0)
 	}
 	e.Payload.Withdrawals = dec.ExecutionPayload.Withdrawals
-
-	e.Payload.BlockAccessList = *dec.ExecutionPayload.BlockAccessList
 
 	v, err := hexutil.DecodeBig(dec.BlockValue)
 	if err != nil {

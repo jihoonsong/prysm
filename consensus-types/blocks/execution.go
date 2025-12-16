@@ -825,29 +825,24 @@ func PayloadToHeaderGloas(payload interfaces.ExecutionData) (*enginev1.Execution
 		return nil, err
 	}
 
-	// For Gloas, we need to compute the BlockAccessListRoot
-	// This will need to be implemented once we have access to the BlockAccessList field
-	var blockAccessListRoot [32]byte
-
 	return &enginev1.ExecutionPayloadHeaderGloas{
-		ParentHash:          bytesutil.SafeCopyBytes(payload.ParentHash()),
-		FeeRecipient:        bytesutil.SafeCopyBytes(payload.FeeRecipient()),
-		StateRoot:           bytesutil.SafeCopyBytes(payload.StateRoot()),
-		ReceiptsRoot:        bytesutil.SafeCopyBytes(payload.ReceiptsRoot()),
-		LogsBloom:           bytesutil.SafeCopyBytes(payload.LogsBloom()),
-		PrevRandao:          bytesutil.SafeCopyBytes(payload.PrevRandao()),
-		BlockNumber:         payload.BlockNumber(),
-		GasLimit:            payload.GasLimit(),
-		GasUsed:             payload.GasUsed(),
-		Timestamp:           payload.Timestamp(),
-		ExtraData:           bytesutil.SafeCopyBytes(payload.ExtraData()),
-		BaseFeePerGas:       bytesutil.SafeCopyBytes(payload.BaseFeePerGas()),
-		BlockHash:           bytesutil.SafeCopyBytes(payload.BlockHash()),
-		TransactionsRoot:    txRoot[:],
-		WithdrawalsRoot:     withdrawalsRoot[:],
-		BlobGasUsed:         blobGasUsed,
-		ExcessBlobGas:       excessBlobGas,
-		BlockAccessListRoot: blockAccessListRoot[:],
+		ParentHash:       bytesutil.SafeCopyBytes(payload.ParentHash()),
+		FeeRecipient:     bytesutil.SafeCopyBytes(payload.FeeRecipient()),
+		StateRoot:        bytesutil.SafeCopyBytes(payload.StateRoot()),
+		ReceiptsRoot:     bytesutil.SafeCopyBytes(payload.ReceiptsRoot()),
+		LogsBloom:        bytesutil.SafeCopyBytes(payload.LogsBloom()),
+		PrevRandao:       bytesutil.SafeCopyBytes(payload.PrevRandao()),
+		BlockNumber:      payload.BlockNumber(),
+		GasLimit:         payload.GasLimit(),
+		GasUsed:          payload.GasUsed(),
+		Timestamp:        payload.Timestamp(),
+		ExtraData:        bytesutil.SafeCopyBytes(payload.ExtraData()),
+		BaseFeePerGas:    bytesutil.SafeCopyBytes(payload.BaseFeePerGas()),
+		BlockHash:        bytesutil.SafeCopyBytes(payload.BlockHash()),
+		TransactionsRoot: txRoot[:],
+		WithdrawalsRoot:  withdrawalsRoot[:],
+		BlobGasUsed:      blobGasUsed,
+		ExcessBlobGas:    excessBlobGas,
 	}, nil
 }
 

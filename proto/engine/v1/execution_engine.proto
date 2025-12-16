@@ -115,7 +115,6 @@ message ExecutionPayloadGloas {
   [ (ethereum.eth.ext.ssz_max) = "withdrawal.size" ];
   uint64 blob_gas_used = 16;
   uint64 excess_blob_gas = 17;
-  bytes block_access_list = 18 [ (ethereum.eth.ext.ssz_max) = "1073741824" ];
 }
 
 message ExecutionPayloadHeaderGloas {
@@ -136,7 +135,6 @@ message ExecutionPayloadHeaderGloas {
   bytes withdrawals_root = 15 [ (ethereum.eth.ext.ssz_size) = "32" ];
   uint64 blob_gas_used = 16;
   uint64 excess_blob_gas = 17;
-  bytes block_access_list_root = 18 [ (ethereum.eth.ext.ssz_size) = "32" ];
 }
 
 message ExecutionPayloadCapellaWithValue {
