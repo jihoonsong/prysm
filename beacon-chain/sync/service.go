@@ -182,6 +182,7 @@ type Service struct {
 	dataColumnLogCh                  chan dataColumnLogEntry
 	digestActions                    perDigestSet
 	subscriptionSpawner              func(func()) // see Service.spawn for details
+	chunkAccessListCache             *cache.ChunkAccessListCache
 }
 
 // NewService initializes new regular sync service.

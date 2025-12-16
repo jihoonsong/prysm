@@ -46,6 +46,10 @@ const (
 	GossipLightClientOptimisticUpdateMessage = "light_client_optimistic_update"
 	// GossipDataColumnSidecarMessage is the name for the data column sidecar message type.
 	GossipDataColumnSidecarMessage = "data_column_sidecar"
+	// GossipExecutionChunkMessage is the name for the execution chunk message type.
+	GossipExecutionChunkMessage = "execution_chunk"
+	// GossipChunkAccessListMessage is the name for the chunk access list message type.
+	GossipChunkAccessListMessage = "chunk_access_list"
 
 	// Topic Formats
 	//
@@ -75,6 +79,10 @@ const (
 	LightClientOptimisticUpdateTopicFormat = GossipProtocolAndDigest + GossipLightClientOptimisticUpdateMessage
 	// DataColumnSubnetTopicFormat is the topic format for the data column subnet.
 	DataColumnSubnetTopicFormat = GossipProtocolAndDigest + GossipDataColumnSidecarMessage + "_%d"
+	// ExecutionChunkTopicFormat is the topic format for the execution chunk.
+	ExecutionChunkTopicFormat = GossipProtocolAndDigest + GossipExecutionChunkMessage
+	// ChunkAccessListTopicFormat is the topic format for the chunk access list.
+	ChunkAccessListTopicFormat = GossipProtocolAndDigest + GossipChunkAccessListMessage
 )
 
 // topic is a struct representing a single gossipsub topic.

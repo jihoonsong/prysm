@@ -266,3 +266,10 @@ func WithStartWaitingDataColumnSidecars(c chan bool) Option {
 		return nil
 	}
 }
+
+func WithChunkAccessListCache(c *cache.ChunkAccessListCache) Option {
+	return func(s *Service) error {
+		s.chunkAccessListCache = c
+		return nil
+	}
+}

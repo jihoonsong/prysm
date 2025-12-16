@@ -25,6 +25,8 @@ var gossipTopicMappings = map[string]func() proto.Message{
 	LightClientOptimisticUpdateTopicFormat:    func() proto.Message { return &ethpb.LightClientOptimisticUpdateAltair{} },
 	LightClientFinalityUpdateTopicFormat:      func() proto.Message { return &ethpb.LightClientFinalityUpdateAltair{} },
 	DataColumnSubnetTopicFormat:               func() proto.Message { return &ethpb.DataColumnSidecar{} },
+	ExecutionChunkTopicFormat:                 func() proto.Message { return &ethpb.ExecutionChunk{} },
+	ChunkAccessListTopicFormat:                func() proto.Message { return &ethpb.ChunkAccessList{} },
 }
 
 // GossipTopicMappings is a function to return the assigned data type
@@ -150,4 +152,6 @@ func init() {
 
 	// Specially handle Gloas objects.
 	GossipTypeMapping[reflect.TypeOf(&ethpb.SignedBeaconBlockGloas{})] = BlockSubnetTopicFormat
+	GossipTypeMapping[reflect.TypeOf(&ethpb.ExecutionChunk{})] = ExecutionChunkTopicFormat
+	GossipTypeMapping[reflect.TypeOf(&ethpb.ChunkAccessList{})] = ChunkAccessListTopicFormat
 }

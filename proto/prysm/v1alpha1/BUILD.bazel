@@ -16,8 +16,10 @@ proto_library(
     name = "proto",
     srcs = [
         "beacon_chain.proto",
+        "chunk_access_list.proto",
         "debug.proto",
         "eip_7251.proto",
+        "execution_chunk.proto",
         "finalized_block_root_container.proto",
         "health.proto",
         "node.proto",

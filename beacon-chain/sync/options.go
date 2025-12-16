@@ -238,3 +238,10 @@ func WithReconstructionRandGen(rg *rand.Rand) Option {
 		return nil
 	}
 }
+
+func WithChunkAccessListCache(c *cache.ChunkAccessListCache) Option {
+	return func(s *Service) error {
+		s.chunkAccessListCache = c
+		return nil
+	}
+}

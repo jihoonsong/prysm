@@ -69,6 +69,7 @@ type Service struct {
 	lcStore                        *lightClient.Store
 	startWaitingDataColumnSidecars chan bool // for testing purposes only
 	syncCommitteeHeadState         *cache.SyncCommitteeHeadStateCache
+	chunkAccessListCache           *cache.ChunkAccessListCache
 }
 
 // config options for the service.

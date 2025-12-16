@@ -245,6 +245,7 @@ func (s *Service) validateExecutionAndConsensus(
 func (s *Service) handleDA(ctx context.Context, avs das.AvailabilityStore, block blocks.ROBlock) (time.Duration, error) {
 	var err error
 	start := time.Now()
+	// TODO: We might want to handle the DA checks of chunks and CALs here.
 	if avs != nil {
 		err = avs.IsDataAvailable(ctx, s.CurrentSlot(), block)
 	} else {
